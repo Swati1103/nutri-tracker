@@ -1,0 +1,6 @@
+uploads/*
+uploads/**
+temp/*
+temp/**
+../../frontend/*
+node_modules/*
