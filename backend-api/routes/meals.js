@@ -67,7 +67,7 @@ export default function (JWT_SECRET) {
       formData.append("image", fileStream, req.file.originalname);
 
       const flaskResponse = await axios.post(
-        "http://127.0.0.1:5001/api/predict",
+        "http://127.0.0.1:5000/api/predict",
         formData,
         {
           headers: formData.getHeaders(),
