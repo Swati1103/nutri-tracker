@@ -18,8 +18,8 @@ export default function (JWT_SECRET) {
     const isProduction = process.env.NODE_ENV === "production";
     return {
       httpOnly: true,
-      secure: isProduction, // ✅ true only in production (HTTPS)
-      sameSite: isProduction ? "none" : "lax", // ✅ "none" for cross-site in production
+      secure: true, // ✅ true only in production (HTTPS)
+      sameSite: "none", // ✅ "none" for cross-site in production
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       path: "/", // ✅ Ensure cookie is available for all routes
     };
