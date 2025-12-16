@@ -4,10 +4,20 @@ import jwt from "jsonwebtoken";
 export const createVerifyToken = (JWT_SECRET) => {
   return (req, res, next) => {
     console.log("\n🔐 ===== TOKEN VERIFICATION =====");
-    console.log("Checking for token...");
 
-    // ✅ Try to get token from cookies or Authorization header
-    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+    // ✅ Try to get token from cookies OR Authorization header
+    let token = req.cookies.token;
+
+    // ✅ If no cookie, check Authorization header
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.substring(7); // Remove "Bearer " prefix
+        console.log("📋 Token from Authorization header");
+      }
+    } else {
+      console.log("🍪 Token from cookie");
+    }
 
     console.log("Token found:", token ? "✅ YES" : "❌ NO");
 
@@ -23,7 +33,7 @@ export const createVerifyToken = (JWT_SECRET) => {
       console.log("🔍 Verifying token...");
       const decoded = jwt.verify(token, JWT_SECRET);
       console.log("✅ Token verified for user:", decoded.username);
-      
+
       req.user = decoded;
       next();
     } catch (err) {
