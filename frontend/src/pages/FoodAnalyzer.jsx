@@ -29,82 +29,91 @@ const FoodAnalyzer = () => {
   };
 
   // Handle save meal
-  const handleSaveMeal = async () => {
-    if (!result) return;
+const handleSaveMeal = async () => {
+  if (!result) return;
 
-    setIsSaving(true);
-    try {
-      // Handle both food_items and detected formats
-      const foodName = result.food_items?.[0]?.name || 
-                      result.detected?.[0] || 
-                      "Unknown Food";
-      
-      // Convert food_items to nutrition format
-      const nutritionData = result.food_items?.map((item) => ({
-        name: item.name, // ✅ Add name field (required by backend)
+  setIsSaving(true);
+  try {
+    //  Get token from localStorage
+    const user = storage.getUser();
+    const token = localStorage.getItem("token");
+
+    console.log("🔐 Token:", token ? " Found" : "Not found");
+    console.log("👤 User:", user);
+
+    if (!token) {
+      toast.error("Please login first");
+      setIsSaving(false);
+      return;
+    }
+
+    // Handle both food_items and detected formats
+    const foodName =
+      result.food_items?.[0]?.name || result.detected?.[0] || "Unknown Food";
+
+    // Convert food_items to nutrition format
+    const nutritionData =
+      result.food_items?.map((item) => ({
+        name: item.name,
         calories: item.calories,
         protein: item.protein,
         carbohydrates: item.carbs,
         fat: item.fat,
-      })) || result.nutrition || [];
+      })) ||
+      result.nutrition ||
+      [];
 
-      console.log("📤 Sending to /api/meals/save:", {
+    console.log("📤 Sending to /api/meals/save");
+
+    const saveUrl = getFullURL("/api/meals/save");
+
+    //  FIXED: Send token in Authorization header
+    const response = await fetch(saveUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`, //  Send token here
+      },
+      credentials: "include", //  Also try to send cookies
+      body: JSON.stringify({
         foodName,
-        detected: result.food_items?.map(item => item.name) || result.detected,
+        detected:
+          result.food_items?.map((item) => item.name) ||
+          result.detected ||
+          [],
         nutrition: nutritionData,
         mealType,
+      }),
+    });
+
+    const data = await response.json();
+    console.log("Response:", data);
+
+    if (!response.ok) {
+      console.error("Response error:", {
+        status: response.status,
+        statusText: response.statusText,
+        data,
       });
-
-      const saveUrl = getFullURL("/api/meals/save");
-      console.log("🔗 Save URL:", saveUrl);
-      console.log("📦 Request payload:", {
-        foodName,
-        detected: result.food_items?.map((item) => item.name) || result.detected || [],
-        nutrition: nutritionData,
-        mealType,
-      });
-
-      const response = await fetch(saveUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          foodName,
-          detected: result.food_items?.map((item) => item.name) || result.detected || [],
-          nutrition: nutritionData,
-          mealType,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.error("❌ Response error:", {
-          status: response.status,
-          statusText: response.statusText,
-          data,
-        });
-        throw new Error(data.message || `HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      console.log("✅ Meal saved:", data);
-      toast.success("✅ Meal saved to your history!");
-      
-      // Reset form
-      setFile(null);
-      setPreview(null);
-      setResult(null);
-      setMealType("snack");
-    } catch (err) {
-      console.error("❌ Save error:", err);
-      toast.error("❌ " + (err.message || "Error saving meal"));
-    } finally {
-      setIsSaving(false);
+      throw new Error(
+        data.message || `HTTP ${response.status}: ${response.statusText}`
+      );
     }
-  };
 
+    toast.success(" Meal saved to your history!");
+
+    // Reset form
+    setFile(null);
+    setPreview(null);
+    setResult(null);
+    setMealType("snack");
+  } catch (err) {
+    console.error("Save error:", err);
+    toast.error(err.message || "Error saving meal");
+  } finally {
+    setIsSaving(false);
+  }
+};
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -137,7 +146,7 @@ const FoodAnalyzer = () => {
       }
 
       const data = await response.json();
-      console.log("✅ Backend response:", data);
+      console.log(" Backend response:", data);
 
       // Transform Flask response to match display format
       const transformedResult = {
@@ -174,7 +183,9 @@ const FoodAnalyzer = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* File Input */}
                 <fieldset className="fieldset">
-                  <legend className="fieldset-legend my-2">Upload Food Image</legend>
+                  <legend className="fieldset-legend my-2">
+                    Upload Food Image
+                  </legend>
                   <input
                     type="file"
                     accept="image/*"
@@ -260,10 +271,9 @@ const FoodAnalyzer = () => {
               )}
             </div>
           )}
-          {
-            isLoggedIn && result &&
+          {isLoggedIn && result && (
             <div className="mt-5 space-y-3">
-              <select 
+              <select
                 value={mealType}
                 onChange={(e) => setMealType(e.target.value)}
                 className="select select-bordered w-full text-sm"
@@ -273,7 +283,7 @@ const FoodAnalyzer = () => {
                 <option value="dinner">Dinner</option>
                 <option value="snack">Snack</option>
               </select>
-              <button 
+              <button
                 onClick={handleSaveMeal}
                 disabled={isSaving}
                 className="w-full btn btn-active btn-success bg-green-400 font-black"
@@ -288,7 +298,7 @@ const FoodAnalyzer = () => {
                 )}
               </button>
             </div>
-          }
+          )}
         </div>
       </div>
     </div>
