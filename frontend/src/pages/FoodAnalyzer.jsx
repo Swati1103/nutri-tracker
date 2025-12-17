@@ -38,9 +38,7 @@ const FoodAnalyzer = () => {
       const user = storage.getUser();
       const token = storage.getToken(); // ✅ Use storage utility instead of direct localStorage
 
-      console.log("🔐 Token:", token ? "✅ Found" : "❌ Not found");
-      console.log("👤 User:", user);
-
+    
       if (!token) {
         toast.error("Please login first");
         setIsSaving(false);
@@ -63,7 +61,6 @@ const FoodAnalyzer = () => {
         result.nutrition ||
         [];
 
-      console.log("📤 Sending to /api/meals/save");
 
       const saveUrl = getFullURL("/api/meals/save");
 
@@ -87,7 +84,6 @@ const FoodAnalyzer = () => {
       });
 
       const data = await response.json();
-      console.log("Response:", data);
 
       if (!response.ok) {
         console.error("Response error:", {
@@ -132,7 +128,6 @@ const FoodAnalyzer = () => {
 
       // Send to backend /api/meals/add (which forwards to Flask)
       const addUrl = getFullURL("/api/meals/add");
-      console.log("📤 Uploading to:", addUrl);
 
       const response = await fetch(addUrl, {
         method: "POST",
@@ -181,18 +176,53 @@ const FoodAnalyzer = () => {
                 Nutrition Analyzer
               </h1>
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* File Input */}
+                {/* File Input Options */}
                 <fieldset className="fieldset">
                   <legend className="fieldset-legend my-2">
-                    Upload Food Image
+                    Choose Photo Source
                   </legend>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="file-input file-input-bordered w-full"
-                    disabled={loading}
-                  />
+
+                  <div className="flex gap-3 flex-wrap">
+                    {/* Upload from Gallery Button */}
+                    <label className="btn btn-outline btn-primary flex-1 min-w-[200px]">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      Upload from Gallery
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                        disabled={loading}
+                      />
+                    </label>
+
+                    {/* Take Photo with Camera Button */}
+                    <label className="btn btn-outline btn-secondary flex-1 min-w-[200px]">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Take Photo
+                      <input
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={handleFileChange}
+                        className="hidden"
+                        disabled={loading}
+                      />
+                    </label>
+                  </div>
+
+                  {/* Selected file name display */}
+                  {file && (
+                    <div className="mt-3 text-sm text-gray-600">
+                      <span className="font-medium">Selected: </span>
+                      {file.name}
+                    </div>
+                  )}
                 </fieldset>
 
                 {/* Image Preview */}
