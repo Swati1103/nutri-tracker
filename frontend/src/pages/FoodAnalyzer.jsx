@@ -38,9 +38,7 @@ const FoodAnalyzer = () => {
       const user = storage.getUser();
       const token = storage.getToken(); // ✅ Use storage utility instead of direct localStorage
 
-      console.log("🔐 Token:", token ? "✅ Found" : "❌ Not found");
-      console.log("👤 User:", user);
-
+    
       if (!token) {
         toast.error("Please login first");
         setIsSaving(false);
@@ -63,7 +61,6 @@ const FoodAnalyzer = () => {
         result.nutrition ||
         [];
 
-      console.log("📤 Sending to /api/meals/save");
 
       const saveUrl = getFullURL("/api/meals/save");
 
@@ -87,7 +84,6 @@ const FoodAnalyzer = () => {
       });
 
       const data = await response.json();
-      console.log("Response:", data);
 
       if (!response.ok) {
         console.error("Response error:", {
@@ -132,7 +128,6 @@ const FoodAnalyzer = () => {
 
       // Send to backend /api/meals/add (which forwards to Flask)
       const addUrl = getFullURL("/api/meals/add");
-      console.log("📤 Uploading to:", addUrl);
 
       const response = await fetch(addUrl, {
         method: "POST",
